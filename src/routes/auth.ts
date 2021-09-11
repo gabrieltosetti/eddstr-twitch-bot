@@ -1,25 +1,27 @@
-const router = require('express').Router();
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const userValidation = require('../models/validations/User');
-const loginValidation = require('../models/validations/Login');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import { UserModel } from '../models/User';
+import userValidation from '../models/validations/User';
+import loginValidation from '../models/validations/Login';
+// import express from 'express';
 
+const Router = express.Router();
 
-router.post('/register', async (req, res) => {
+Router.post('/register', async (req, res) => {
     try {
         // User validation
         const validation = userValidation(req.body);
         if (validation.error) throw { status: 400, message: validation.error.details[0].message };
 
         // Check for users with the same email
-        const emailExists = await User.findOne({ email: req.body.email });
+        const emailExists = await UserModel.findOne({ email: req.body.email });
         if (emailExists) throw { status: 400, message: "email already exists" };
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashPassword = await bcrypt.hash(req.body.password, salt);
 
-        const user = new User({
+        const user = new UserModel({
             name: req.body.name,
             email: req.body.email,
             password: hashPassword,
@@ -28,19 +30,19 @@ router.post('/register', async (req, res) => {
         const newUser = await user.save();
         
         res.status(200).send(newUser);
-    } catch (err) {
+    } catch (err:  any) {
         res.status(500).send({ status: err.status || 500, message: err.message });
     }
 });
 
-router.post('/login', async (req, res) => {
+Router.post('/login', async (req, res) => {
     try {
         // User validation
         const validation = loginValidation(req.body);
         if (validation.error) throw { status: 400, message: validation.error.details[0].message };
 
         // Check for users with the same email
-        const user = await User.findOne({ email: req.body.email });
+        const user = await UserModel.findOne({ email: req.body.email });
         if (!user) throw { status: 400, message: "Email does not exists" };
         
         // Check for users with the same email
@@ -49,10 +51,10 @@ router.post('/login', async (req, res) => {
 
         res.send({message: "sucess"});
 
-    } catch (err) {
+    } catch (err: any) {
         res.status(500).send({ status: err.status || 500, message: err.message });
     }
 
 });
 
-module.exports = router;
+export { Router as authRouter };

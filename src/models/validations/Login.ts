@@ -1,6 +1,6 @@
-const Joi = require('@hapi/joi');
+import Joi from '@hapi/joi';
 
-module.exports = (data) => {
+export = (data: any) => {
     const schema = Joi.object({
         email:    Joi.string().min(6).max(255).email(),
         password: Joi.string().min(6).max(1024).required(),
